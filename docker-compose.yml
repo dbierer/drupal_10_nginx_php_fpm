@@ -1,0 +1,22 @@
+version: "3"
+services:
+  drupal_demo:
+    container_name: drupal_demo
+    hostname: drupal.local
+    image: images/drupal_demo
+    volumes:
+     - ".:/home/training"
+     - "./Labs/drupal.local:/var/www/drupal"
+    ports:
+     - "8008:80"
+    build: ./Docker
+    restart: always
+    networks:
+      drupal_demo_net:
+        ipv4_address: 10.10.60.10
+networks:
+  drupal_demo_net:
+    ipam:
+      driver: default
+      config:
+      - subnet: "10.10.60.0/24"
