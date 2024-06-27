@@ -12,21 +12,16 @@ ARG BASE_IMAGE=fpm
 FROM cr.zend.com/zendphp/${ZENDPHP_VERSION}:${OS}-${OS_VERSION}-${BASE_IMAGE}
 MAINTAINER doug@unlikelysource.com
 COPY index.php /tmp/index.php
-COPY hosts /etc/hosts
-COPY startup.sh /tmp/startup.sh
 COPY secrets.sh /tmp/secrets.sh
-COPY install_drupal.sh /tmp/install_drupal.sh
 COPY backup.sh /tmp/backup.sh
 COPY restore.sh /tmp/restore.sh
-COPY drupal.conf /tmp/drupal.conf
 COPY nginx.default.conf /tmp/default.conf
-COPY update_conf.php /tmp/update_conf.php
 RUN chmod +x /tmp/*.sh
 RUN chmod +x /tmp/*.sh
 RUN \
     echo "Installing misc tools ..." && \
     apt-get update && \
-    apt-get install -y less vim net-tools wget unzip
+    apt-get install -y less vim net-tools wget unzip apt-utils
 RUN \
     echo "Installing Mariadb (MySQL open source equivalent) ..." && \
     apt-get install -y mysql-server && \
@@ -38,13 +33,6 @@ RUN \
 	mysql -uroot -ppassword -v -e "GRANT ALL PRIVILEGES ON *.* TO '$DB_USR'@'$DB_HOST';" && \
 	mysql -uroot -ppassword -v -e "FLUSH PRIVILEGES;"
 RUN \
-    echo "Installing nginx ..." && \
-    apt-get install -y nginx && \
-    mv /tmp/index.php /var/www/html/index.php && \
-    mv -v /etc/nginx/sites-available/default /etc/nginx/sites-available/default.old && \
-    mv -v /tmp/default.conf /etc/nginx/sites-available/default && \
-    ln -s -f /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
-RUN \
     echo "Adding/enabling PHP extensions ..." && \
     # PHP reqs are listed here: https://github.com/drupal/core/blob/11.x/composer.json
     # (Substitute "11.x" for the version of Drupal you are using
@@ -55,15 +43,30 @@ RUN \
     zendphpctl ext install mbstring && \
     zendphpctl ext install curl
 RUN \
+    echo "Installing Composer ..." && \
+    . /tmp/secrets.sh && \
+    cd /tmp && \
+    wget https://getcomposer.org/composer.phar && \
+    mv /tmp/composer.phar /usr/bin/composer && \
+    chmod +x /usr/bin/composer
+RUN \
+    echo "Installing nginx ..." && \
+    apt-get install -y nginx && \
+    mv /tmp/index.php /var/www/html/index.php && \
+    mv -v /tmp/default.conf /etc/nginx/sites-available/default.conf && \
+    ln -s -f /etc/nginx/sites-available/default.conf /etc/nginx/sites-enabled/default
+RUN \
     echo "Installing Adminer (phpMyAdmin equivalent) ..." && \
     . /tmp/secrets.sh && \
     cd /tmp && \
     wget https://github.com/vrana/adminer/releases/download/v$ADMINER_VER/adminer-$ADMINER_VER-mysql.php && \
     cp adminer-$ADMINER_VER-mysql.php /var/www/html/adminer.php
+COPY drupal.conf /tmp/drupal.conf
+COPY update_conf.php /tmp/update_conf.php
 RUN \
-    echo "Set up nginx configuration for Drupal ... " && \
+    echo "Creating (but not enabling) Drupal configuration for nginx ..." && \
     php /tmp/update_conf.php && \
-    cp /tmp/drupal.conf.new /etc/nginx/sites-available/drupal.conf && \
-    ln -s -f /etc/nginx/sites-available/drupal.conf /etc/nginx/sites-enabled/drupal.conf
+    cp /tmp/drupal.conf.new /etc/nginx/sites-available/drupal.conf
+COPY startup.sh /tmp/startup.sh
 WORKDIR /home/training
 ENTRYPOINT /tmp/startup.sh

@@ -30,10 +30,9 @@ elif [[ "$1" = "init" ]]; then
     if [[ -z ${CONTAINER} ]]; then
         echo "Unable to locate running container"
     else
-        docker exec $CONTAINER /bin/bash -c "/etc/init.d/mysql restart"
-        docker exec $CONTAINER /bin/bash -c "/etc/init.d/php-fpm restart"
-        docker exec $CONTAINER /bin/bash -c "/etc/init.d/nginx restart"
+        docker exec $CONTAINER /bin/bash -c "/etc/init.d/mysql start"
         docker exec $CONTAINER /bin/bash -c "/tmp/restore.sh"
+        docker exec $CONTAINER /bin/bash -c "/etc/init.d/nginx reload"
     fi
 elif [[ "$1" = "shell" ]]; then
     if [[ -z ${CONTAINER} ]]; then

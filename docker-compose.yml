@@ -6,7 +6,6 @@ services:
     image: images/drupal_demo
     volumes:
      - ".:/home/training"
-     - "./Labs/drupal.local:/var/www/drupal"
     ports:
      - "8008:80"
     build: ./Docker

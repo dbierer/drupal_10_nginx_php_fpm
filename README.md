@@ -1,7 +1,7 @@
-# Installation
-drupal_10_nginx_php_fpm
-Shows how to configure a Docker container for Drupal 10, nginx, and PHP-FPM.
+# drupal_10_nginx_php_fpm
+# Updated: 27 Jun 2024
 
+Shows how to configure a Docker container for Drupal 10, nginx, and PHP-FPM.
 
 ## Install Docker and Docker Compose
 You can use these instructions to set up Docker
@@ -95,7 +95,7 @@ You can install Drupal shelled into the Docker container
 * You'll be doing this as the `root` user
 * The installation will actually be on a shared folder which lets you edit the source code from outside the container
 ```
-# /tmp/install_drupal.sh
+# /home/training/install_drupal.sh
 ```
 
 

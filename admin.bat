@@ -10,9 +10,9 @@ IF "%1"=="start" GOTO :up
 GOTO :opt2
 :up
 docker-compose up -d %2
-IF "%~2%" == "--no-backup" GOTO:EOF
+IF "%~2%" == "--no-backup" GOTO :init
 docker exec %CONTAINER% /bin/bash -c "/tmp/restore.sh"
-GOTO:EOF
+GOTO :init
 
 :opt2
 IF "%1" =="down" GOTO :down
@@ -46,9 +46,10 @@ GOTO:EOF
 IF "%1"=="init" GOTO :init
 GOTO :opt6
 :init
-docker exec %CONTAINER% /bin/bash -c "/etc/init.d/mysql restart"
-docker exec %CONTAINER% /bin/bash -c "/etc/init.d/php-fpm restart"
-docker exec %CONTAINER% /bin/bash -c "/etc/init.d/httpd restart"
+docker exec %CONTAINER% /bin/bash -c "%REPO_DIR%/Docker/install_drupal.sh"
+docker exec %CONTAINER% /bin/bash -c "/etc/init.d/mysql start"
+docker exec %CONTAINER% /bin/bash -c "/tmp/restore.sh"
+docker exec %CONTAINER% /bin/bash -c "/etc/init.d/nginx reload"
 GOTO:EOF
 
 :opt6
